@@ -1,10 +1,10 @@
-# facedetecthaar.py
+# facedetect.py
 #
 # This program uses opencv's haar cascade face detector to find bounding boxes
 # of all faces in the provided image.
 #
 # Code is modified from opencv example at:
-#   https://docs.opencv.org/4.x/dd/d43/tutorial_py_video_display.html 
+# https://docs.opencv.org/4.x/dd/d43/tutorial_py_video_display.html 
 
 import cv2
 
@@ -30,6 +30,6 @@ for (x, y, w, h) in faces:
 
 # Display the output
 cv2.imshow('press any key to exit', img)
-cv2.imwrite('example.png',img)
+cv2.imwrite('example_result.png',img)
 cv2.waitKey(0) # blocks until a key is pressed when window is active.
 cv2.destroyAllWindows()

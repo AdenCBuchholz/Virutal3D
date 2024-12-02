@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 class Facefinder:
 #Use haarcascade filter to detect largest face from a frame.
-    def __init__ (self):
+    def __init__(self):
         print ('Face Finder Initalize')
         self.face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
@@ -25,7 +25,36 @@ class Facefinder:
               bx, by, bw, bh = x, y, w, h  
             cv2.rectangle(frame, (bx, by), (bx+bw, by+bh), (0, 255, 255), 5)
             return(bx + bw/2), (by + bh//2)
-#---------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------
 # Main
 ff = Facefinder()
+#create cam
+cap = cv2.VideoCapture(cv2.CAP_ANY)
+if not cap.isOpened():
+    print('Couldnt Open Cam')
+    exit()
+
+while True:
+    retval, frame = cap.read()
+    if retval == False:
+        print('camera error!')
+
+    ff.find_face(frame)
+    cv2.imshow('q to quit', frame)
+
+    if cv2.waitKey(30) == ord('q'):
+        break
+
+
+
+
+
+
+
+pause = input('press enter to end')
+
+#destroy cam
+cap.release()
+
+cv2.destroyAllWindows()
 print("Virtual3d Complete")

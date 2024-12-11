@@ -34,7 +34,7 @@ class Stage:
         self.disp_w = 0
         self.cam_h = 720
         self.cam_w = 1280
-        self.disp_x = 960
+        self.save_x = 960
 
     def draw_target_xy(self, img, pos, size):
         cv2.circle(img, pos, size, (0, 0, 255), -1)
@@ -52,8 +52,8 @@ class Stage:
         cv2.circle(img, (ball0x, ball0y), 50, (255, 0, 0), -1)
         cv2.line(img, (960 + int((600-960)*.3**2), 540), (ball0x, ball0y), (255, 0, 0), 3)
 
-    def update(self, facexy):
-        x , y = facexy
+    def update(self, facexy): #Redraws the screen
+        x, y = facexy
         e = .9 #smoothing constant
         x = e * x + (1 - e) * self.save_x
         self.save_x = x
@@ -64,54 +64,80 @@ class Stage:
         dx = int((x - self.cam_w/2) * 2)
 
         for i in range(1,7):
-            sx = sy + int((960-sx)*decay)
-            sy = sy + int((960-sx)*decay)
+            sx = sx + int((960-sx)*decay) 
+            sy = sy + int((540-sy)*decay)
+            dx = int(dx * decay)
             #print (sc, sy)
-            cv2.rectangle(img, (sx + dx, sy), (1920 - sx + dx, 1080 - sy), (255, 255, 255) , 1)
+            cv2.rectangle(img, 
+                          (sx + dx, sy), 
+                          (1920 - sx + dx, 1080 - sy), 
+                          (255, 255, 255), 
+                          1)
 
-            ball0x = 600 + int((x - self.cam_w/2))
+            ball0x = 600 + int((x - self.cam_w/2)* 2 *.6)
             ball0y = 540
 
-            cv2.line(img, (960 + int((600-960)*.3**2), 540), (ball0x, ball0y), (255, 255, 255) , 3)
+            cv2.line(img, (960 + int((600-960)*.3**2), 540), 
+                    (ball0x, ball0y), 
+                    (255, 0, 0) , 
+                    3)
             self.draw_target_xy(img, (ball0x, ball0y), 35)
 
-            ball1x = 1000 + ((x - self.cam_w//2)*2*.2)
+            ball1x = 1000 + int((x - self.cam_w//2)*2*.2)
             ball1y = 440
 
-            cv2.line(img, (960 + int((1200-960)*.3**2), 540 - int((540-340)*.3**2)), (ball1x, ball1y), (255, 0, 0), 3)
+            cv2.line(img, 
+                     (960 + int((1200-960)*.3**2), 540 - int((540-340)*.3**2)), 
+                     (ball1x, ball1y), 
+                     (255, 0, 0), 
+                     3)
             self.draw_target_xy(img, (ball1x, ball1y), 25)
             
-            ball2x = 1100 + ((x - self.cam_w//2)*2*.9)
+            ball2x = 1100 + int((x - self.cam_w//2)*2*.9)
             ball2y = 650
 
-            cv2.line(img, (960 + int((1100-960)*.3**2), 540 - int((540-340)*.3**2)), (ball2x, ball2y), (255, 0, 0), 3)
+            cv2.line(img, 
+                     (960 + int((1100-960)*.3**2), 540 - int((540-650)*.3**2)),            
+                     (ball2x, ball2y), 
+                     (255, 0, 0), 
+                     3)
             self.draw_target_xy(img, (ball2x, ball2y),50)
 
         cv2.imshow('Adens Game', img)
 #-----------------------------------------------------------------------------------------------
 # Main
 ff = Facefinder()
-#create cam
-cap = cv2.VideoCapture(cv2.CAP_ANY)
+stage = Stage()
+#img, cv2.imread('brick-wall.jpg)
+img = np.zeros([1080,1920,3])
+cv2.imshow('Adens Game', img)
+cap = cv2.VideoCapture(1) #create cam
+#cap = cv2.VideoCapture(cv2.CAP_ANY) #create cam
 if not cap.isOpened():
     print('Couldnt Open Cam')
     exit()
 
+moved = False
 while True:
-    retval, frame = cap.read()
-    if retval == False:
-        print('Camera Error!')
-
-    ff.find_face(frame)
-    cv2.imshow('q to quit', frame)
-
+    #Read the Frame
+    ret, frame = cap.read()
+    #If frame is read correctly ret is True
+    if not ret:
+        print('Error Reading frame. Exiting...')
+        
+    facexy = ff.find_face(frame)
+    frame_small = cv2.resize(frame, (frame.shape[1]//4, frame.shape[0]//4) , interpolation= cv2.INTER_LINEAR)
+    cv2.imshow('q to quit', frame_small)
+    if not moved:
+        cv2.moveWindow('q to quit', 1080, 0)
+        moved = True
+    if facexy is not None:
+        img = stage.update(facexy)
+    #Stop if q is key is pressed
     if cv2.waitKey(30) == ord('q'):
         break
 
-pause = input('press enter to end')
-
 #destroy cam
 cap.release()
-
 cv2.destroyAllWindows()
 print("Virtual3d Complete")
